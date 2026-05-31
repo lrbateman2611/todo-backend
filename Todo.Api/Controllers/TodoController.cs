@@ -8,23 +8,22 @@ namespace Todo.Api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class TodoController(ITodoService todoService) : ControllerBase
 {
-
-    [HttpGet("todos")]
+    [HttpGet]
     public Task<IEnumerable<TodoItem>> Get()
     {
         return todoService.GetTodoItems();
     }
 
-    [HttpPost("todos")]
+    [HttpPost]
     public Task<Boolean> Post([FromBody] PostTodo request)
     {
         return todoService.AddTodoItem(new TodoItem(request));
     }
 
-    [HttpPut("todos/{id}")]
+    [HttpPut("{id}")]
     public Task<Boolean> Put(int id, [FromBody] UpdateTodo request)
     {
         if (id != request.Id)
@@ -34,7 +33,7 @@ public class TodoController(ITodoService todoService) : ControllerBase
         return todoService.UpdateTodoItem(new TodoItem(request));
     }
 
-    [HttpDelete("todos/{id}")]
+    [HttpDelete("{id}")]
     public Task<Boolean> Delete(int id)
     {
         return todoService.DeleteTodoItem(id);

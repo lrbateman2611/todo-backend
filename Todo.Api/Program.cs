@@ -12,10 +12,24 @@ builder.Services
     .AddCorsConfiguration()
     .ConfigureOpenApiDocuments();
 
+// Add health checks
+builder.Services.AddHealthChecks();
 
 WebApplication app = builder.Build();
 
 app.MapOpenApi();
+
+// Add root endpoint
+app.MapGet("/", () => Results.Ok(new 
+{ 
+    status = "healthy",
+    service = "Todo API",
+    version = "1.0.0",
+    timestamp = DateTime.UtcNow
+}));
+
+// Map health check
+app.MapHealthChecks("/health");
 
 app
     .ConfigureScalar(builder.Configuration, builder.Services)

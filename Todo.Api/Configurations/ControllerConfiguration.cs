@@ -42,7 +42,6 @@ public static class ControllerConfiguration
 
     public static WebApplication ConfigureControllers(this WebApplication app)
     {
-        app.UseHttpsRedirection();
         app.MapControllers();
 
         return app;
