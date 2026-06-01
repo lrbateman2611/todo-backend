@@ -110,7 +110,7 @@ if (-not $appExists) {
 	# Get ACR resource ID
 	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
 	$acrResourceId = (az acr show --only-show-errors --name $AcrName --query id -o tsv) 2>&1
-	$acrResourceId = $acrResourceId.Trim()
+	$acrResourceId = ($acrResourceId | Out-String).Trim()
 	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($acrResourceId)) {
 		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name '$AcrName' is correct and you have access to it." -ForegroundColor Red
 		if ($acrResourceId -and $LASTEXITCODE -ne 0) {
