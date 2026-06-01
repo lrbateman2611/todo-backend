@@ -76,9 +76,9 @@ if (-not $appExists) {
 	$lastError = $null
 	
 	while ($retryCount -lt $maxRetries) {
-		# Try to get the managed identity, capturing both stdout and stderr
+		# Try to get the managed identity, capturing output
 		$output = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>&1
-		if (-not [string]::IsNullOrWhiteSpace($output) -and $output -notlike "*error*") {
+		if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($output)) {
 			$principalId = $output
 			break
 		}
@@ -100,12 +100,15 @@ if (-not $appExists) {
 		exit 1
 	}
 
-	# Get ACR resource ID - separate stdout and stderr
+	# Get ACR resource ID
 	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
-	$acrResourceId = az acr show --name $AcrName --query id -o tsv 2>$null
+	$acrResourceId = az acr show --name $AcrName --query id -o tsv 2>&1
 	
 	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($acrResourceId)) {
 		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name '$AcrName' is correct and you have access to it." -ForegroundColor Red
+		if ($acrResourceId -and $LASTEXITCODE -ne 0) {
+			Write-Host "Error details: $acrResourceId" -ForegroundColor Gray
+		}
 		exit 1
 	}
 
