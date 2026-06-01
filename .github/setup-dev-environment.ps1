@@ -1,5 +1,5 @@
 # Azure Development Environment Setup Script
-# This script creates a development Container App environment
+# This script creates a development Container App in an existing Container Apps Environment
 
 param(
 	[Parameter(Mandatory=$false)]
