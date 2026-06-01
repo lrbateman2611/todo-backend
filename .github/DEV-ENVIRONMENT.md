@@ -5,8 +5,9 @@ This guide explains how to set up and use the development environment in Azure.
 ## Overview
 
 The development environment consists of:
+
 - **Separate Container App** (`todos-api-dev`) for testing
-- **Automatic deployment** when pushing to `dev` branch
+- **Automatic deployment** when creating a PR for the default branch
 - **Lower resources** (0.25 CPU, 0.5GB RAM) to save costs
 - **Shared infrastructure** (ACR, Key Vault, Database)
 
@@ -29,6 +30,7 @@ cd <path-to-your-todo-backend-repo>
 ```
 
 This will:
+
 - ✅ Create a new Container App for development
 - ✅ Configure with lower resources
 - ✅ Set ASPNETCORE_ENVIRONMENT=Development
@@ -39,6 +41,7 @@ This will:
 The development app requires the same secret names as production, but you must provide unique values:
 
 **Option A: Azure Portal (Recommended)**
+
 1. Go to Azure Portal → Container Apps → `todos-api-dev`
 2. Click **Secrets** → **+ Add**
 3. Add: `bitwarden-token` with your Bitwarden token
@@ -50,6 +53,7 @@ The development app requires the same secret names as production, but you must p
 6. Save and create
 
 **Option B: Azure CLI**
+
 ```powershell
 # Add Bitwarden secret
 az containerapp secret set `
@@ -79,6 +83,7 @@ git push -u origin dev
 ### Development Workflow
 
 1. **Make changes** on `dev` branch
+
 ```bash
 git checkout dev
 # Make your changes...
@@ -92,6 +97,7 @@ git push origin dev
    - Check https://github.com/lrbateman2611/todo-backend/actions
 
 3. **Test your changes** on development URL
+
 ```powershell
 # Get development URL
 $devUrl = az containerapp show `
@@ -105,6 +111,7 @@ curl "https://$devUrl/"
 ```
 
 4. **Merge to master** when ready for production
+
 ```bash
 git checkout master
 git merge dev
@@ -114,6 +121,7 @@ git push origin master
 ### Testing Pull Requests
 
 Pull requests to `master` also trigger development deployment:
+
 1. Create PR from `dev` to `master`
 2. Development environment updates automatically
 3. Test the changes
@@ -121,29 +129,31 @@ Pull requests to `master` also trigger development deployment:
 
 ## Environment URLs
 
-| Environment | URL | Trigger |
-|-------------|-----|---------|
-| Production | `todos-api.livelymeadow-*.eastus.azurecontainerapps.io` | Push to `master` |
+| Environment | URL                                                         | Trigger                         |
+| ----------- | ----------------------------------------------------------- | ------------------------------- |
+| Production  | `todos-api.livelymeadow-*.eastus.azurecontainerapps.io`     | Push to `master`                |
 | Development | `todos-api-dev.livelymeadow-*.eastus.azurecontainerapps.io` | Push to `dev` or PR to `master` |
 
 ## Resource Comparison
 
-| Resource | Production | Development | Purpose |
-|----------|-----------|-------------|---------|
-| CPU | 0.5 cores | 0.25 cores | Lower cost |
-| Memory | 1 GB | 0.5 GB | Lower cost |
-| Min Replicas | 1 | 1 | Always running |
-| Max Replicas | 10 | 3 | Limited scaling |
-| Environment | Production | Development | Feature flags |
+| Resource     | Production | Development | Purpose         |
+| ------------ | ---------- | ----------- | --------------- |
+| CPU          | 0.5 cores  | 0.25 cores  | Lower cost      |
+| Memory       | 1 GB       | 0.5 GB      | Lower cost      |
+| Min Replicas | 1          | 1           | Always running  |
+| Max Replicas | 10         | 3           | Limited scaling |
+| Environment  | Production | Development | Feature flags   |
 
 ## Cost Optimization
 
 Development environment costs ~50% less than production:
+
 - **Lower CPU/Memory**: 0.25 CPU vs 0.5 CPU
 - **Lower scaling**: Max 3 replicas vs 10
 - **Shared resources**: Same ACR, Key Vault
 
 Estimated costs:
+
 - Production: ~$15-30/month
 - Development: ~$7-15/month
 
@@ -181,15 +191,18 @@ az containerapp logs show `
 ### Check Deployment Status
 
 Go to GitHub Actions:
+
 - https://github.com/lrbateman2611/todo-backend/actions
 
 Look for:
+
 - **"Build and Deploy to Azure Container Apps"** (Production)
 - **"Deploy to Development"** (Development)
 
 ## Troubleshooting
 
 ### Development app not updating
+
 ```powershell
 # Force restart
 az containerapp revision restart `
@@ -199,6 +212,7 @@ az containerapp revision restart `
 ```
 
 ### Check current image
+
 ```powershell
 az containerapp show `
   --name todos-api-dev `
@@ -207,6 +221,7 @@ az containerapp show `
 ```
 
 ### Rollback development
+
 ```powershell
 # List dev images
 az acr repository show-tags --name todosacr3863 --repository todos-backend --orderby time_desc | Select-String "dev"
@@ -260,18 +275,19 @@ az containerapp show --name todos-api --resource-group todos-containerapp-rg
 
 ## Summary
 
-| Action | Command/Location |
-|--------|------------------|
+| Action                 | Command/Location                      |
+| ---------------------- | ------------------------------------- |
 | Create dev environment | `.\.github\setup-dev-environment.ps1` |
-| Deploy to dev | `git push origin dev` |
-| View dev URL | Portal or `az containerapp show` |
-| Test dev | `curl https://DEV_URL/health` |
-| Promote to prod | Merge `dev` → `master` |
-| View deployments | GitHub Actions tab |
+| Deploy to dev          | `git push origin dev`                 |
+| View dev URL           | Portal or `az containerapp show`      |
+| Test dev               | `curl https://DEV_URL/health`         |
+| Promote to prod        | Merge `dev` → `master`                |
+| View deployments       | GitHub Actions tab                    |
 
 ## Support
 
 For issues with:
+
 - **Development setup**: Check `.github/setup-dev-environment.ps1`
 - **Deployment workflow**: Check `.github/workflows/deploy-dev.yml`
 - **Production deployment**: Check `.github/workflows/deploy-azure.yml`
