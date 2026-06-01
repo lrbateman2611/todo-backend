@@ -116,7 +116,9 @@ if (-not $appExists) {
 	} else {
 		Write-Host "⚠ Failed to assign AcrPull role to Container App: $DevAppName" -ForegroundColor Yellow
 		Write-Host "Managed Identity Principal ID: $principalId" -ForegroundColor Gray
+		Write-Host "The Container App will not be able to pull images from ACR without this role assignment." -ForegroundColor Yellow
 		Write-Host "Please manually assign the AcrPull role to the Container App's managed identity.`n" -ForegroundColor Yellow
+		exit 1
 	}
 }
 
