@@ -13,7 +13,7 @@ The development environment consists of:
 ## Architecture
 
 ```
-Production:  master branch → todos-api (1 CPU, 1GB RAM)
+Production:  master branch → todos-api (0.5 CPU, 1GB RAM)
 Development: dev branch    → todos-api-dev (0.25 CPU, 0.5GB RAM)
 ```
 
