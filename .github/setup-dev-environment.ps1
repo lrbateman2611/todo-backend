@@ -57,12 +57,18 @@ if (-not $appExists) {
 		--target-port 8080 `
 		--ingress external `
 		--registry-server $loginServer `
+		--registry-identity system `
 		--system-assigned `
 		--min-replicas 1 `
 		--max-replicas 3 `
 		--cpu 0.25 `
 		--memory 0.5Gi `
 		--env-vars "ASPNETCORE_ENVIRONMENT=Development"
+
+	if ($LASTEXITCODE -ne 0) {
+		Write-Host "✗ Failed to create development Container App: $DevAppName" -ForegroundColor Red
+		exit 1
+	}
 
 	Write-Host "✓ Development Container App created`n" -ForegroundColor Green
 
