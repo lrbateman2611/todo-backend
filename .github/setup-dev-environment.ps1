@@ -110,16 +110,19 @@ if (-not $appExists) {
 
 	# Assign AcrPull role to the managed identity
 	Write-Host "Assigning AcrPull role to managed identity..." -ForegroundColor Gray
-	az role assignment create `
+	$roleAssignmentOutput = (az role assignment create `
 		--assignee $principalId `
 		--role "AcrPull" `
-		--scope $acrResourceId 2>$null
+		--scope $acrResourceId) 2>&1
 
 	if ($LASTEXITCODE -eq 0) {
 		Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
 	} else {
 		Write-Host "✗ Failed to assign AcrPull role to Container App: $DevAppName" -ForegroundColor Red
 		Write-Host "Managed Identity Principal ID: $principalId" -ForegroundColor Gray
+		if ($roleAssignmentOutput) {
+			Write-Host "Error details: $($roleAssignmentOutput -join '; ')" -ForegroundColor Gray
+		}
 		Write-Host "The Container App will not be able to pull images from ACR without this role assignment." -ForegroundColor Red
 		Write-Host "Please manually assign the AcrPull role to the Container App's managed identity.`n" -ForegroundColor Yellow
 		exit 1
