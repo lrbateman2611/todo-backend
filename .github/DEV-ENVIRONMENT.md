@@ -36,7 +36,7 @@ This will:
 
 ### 2. Configure Secrets
 
-The development app needs the same secrets as production:
+The development app requires the same secret names as production, but you must provide unique values:
 
 **Option A: Azure Portal (Recommended)**
 1. Go to Azure Portal → Container Apps → `todos-api-dev`
