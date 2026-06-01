@@ -73,11 +73,14 @@ if (-not $appExists) {
 	$principalId = $null
 	$retryCount = 0
 	$maxRetries = 10
+	$lastError = $null
 	
 	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -lt $maxRetries) {
 		# Suppress errors during retry attempts since the identity might not be available yet
 		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
 		if ([string]::IsNullOrWhiteSpace($principalId)) {
+			$lastError = "Managed identity not available yet"
+			$principalId = $null
 			$retryCount++
 			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
 			Start-Sleep -Seconds 2
@@ -85,20 +88,20 @@ if (-not $appExists) {
 	}
 	
 	if ([string]::IsNullOrWhiteSpace($principalId)) {
-		Write-Host "✗ Failed to retrieve managed identity. Please manually assign AcrPull role to the Container App's managed identity." -ForegroundColor Red
+		Write-Host "✗ Failed to retrieve managed identity for Container App: $DevAppName" -ForegroundColor Red
+		if ($lastError) {
+			Write-Host "Error details: $lastError" -ForegroundColor Gray
+		}
+		Write-Host "Please manually assign AcrPull role to the Container App's managed identity." -ForegroundColor Yellow
 		return
 	}
 
-	# Get ACR resource ID
+	# Get ACR resource ID - separate stdout and stderr
 	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
-	$acrOutput = az acr show --name $AcrName --query id -o tsv 2>&1
-	$acrResourceId = $acrOutput | Select-Object -First 1
+	$acrResourceId = az acr show --name $AcrName --query id -o tsv 2>$null
 	
 	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($acrResourceId)) {
-		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name is correct and you have access to it." -ForegroundColor Red
-		if ($acrOutput) {
-			Write-Host "Error details: $acrOutput" -ForegroundColor Gray
-		}
+		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name '$AcrName' is correct and you have access to it." -ForegroundColor Red
 		return
 	}
 
@@ -112,8 +115,9 @@ if (-not $appExists) {
 	if ($LASTEXITCODE -eq 0) {
 		Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
 	} else {
-		Write-Host "⚠ Failed to assign AcrPull role. The Container App may not be able to pull images." -ForegroundColor Yellow
+		Write-Host "⚠ Failed to assign AcrPull role to Container App: $DevAppName" -ForegroundColor Yellow
 		Write-Host "Error details: $roleAssignmentOutput" -ForegroundColor Gray
+		Write-Host "Managed Identity Principal ID: $principalId" -ForegroundColor Gray
 		Write-Host "Please manually assign the AcrPull role to the Container App's managed identity.`n" -ForegroundColor Yellow
 	}
 }
