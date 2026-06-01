@@ -75,12 +75,16 @@ if (-not $appExists) {
 	$maxRetries = 10
 	$lastError = $null
 	
-	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -lt $maxRetries) {
+	while ($retryCount -lt $maxRetries) {
 		# Suppress errors during retry attempts since the identity might not be available yet
 		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
-		if ([string]::IsNullOrWhiteSpace($principalId)) {
-			$lastError = "Managed identity not available yet"
-			$retryCount++
+		if (-not [string]::IsNullOrWhiteSpace($principalId)) {
+			break
+		}
+		
+		$lastError = "Managed identity not available yet"
+		$retryCount++
+		if ($retryCount -lt $maxRetries) {
 			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
 			Start-Sleep -Seconds 2
 		}
@@ -114,9 +118,9 @@ if (-not $appExists) {
 	if ($LASTEXITCODE -eq 0) {
 		Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
 	} else {
-		Write-Host "⚠ Failed to assign AcrPull role to Container App: $DevAppName" -ForegroundColor Yellow
+		Write-Host "✗ Failed to assign AcrPull role to Container App: $DevAppName" -ForegroundColor Red
 		Write-Host "Managed Identity Principal ID: $principalId" -ForegroundColor Gray
-		Write-Host "The Container App will not be able to pull images from ACR without this role assignment." -ForegroundColor Yellow
+		Write-Host "The Container App will not be able to pull images from ACR without this role assignment." -ForegroundColor Red
 		Write-Host "Please manually assign the AcrPull role to the Container App's managed identity.`n" -ForegroundColor Yellow
 		exit 1
 	}
