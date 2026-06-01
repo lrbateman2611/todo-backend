@@ -5,6 +5,9 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   AZURE_RESOURCE_GROUP: todos-containerapp-rg
   CONTAINER_APP_NAME: todos-api
