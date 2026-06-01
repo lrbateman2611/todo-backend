@@ -48,14 +48,7 @@ if ($appExists) {
 if (-not $appExists) {
 	Write-Host "Creating development Container App..." -ForegroundColor Yellow
 
-	# Enable ACR admin (if not already)
-	az acr update --name $AcrName --admin-enabled true 2>$null
-
-	# Get ACR credentials
-	$acrUsername = az acr credential show --name $AcrName --query username -o tsv
-	$acrPassword = az acr credential show --name $AcrName --query passwords[0].value -o tsv
-
-	# Create development Container App
+	# Create development Container App with system-assigned managed identity
 	az containerapp create `
 		--name $DevAppName `
 		--resource-group $ResourceGroup `
@@ -64,8 +57,7 @@ if (-not $appExists) {
 		--target-port 8080 `
 		--ingress external `
 		--registry-server $loginServer `
-		--registry-username $acrUsername `
-		--registry-password $acrPassword `
+		--system-assigned `
 		--min-replicas 1 `
 		--max-replicas 3 `
 		--cpu 0.25 `
@@ -73,6 +65,21 @@ if (-not $appExists) {
 		--env-vars "ASPNETCORE_ENVIRONMENT=Development"
 
 	Write-Host "✓ Development Container App created`n" -ForegroundColor Green
+
+	# Get the managed identity's principal ID
+	Write-Host "Configuring managed identity for ACR access..." -ForegroundColor Yellow
+	$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv
+
+	# Get ACR resource ID
+	$acrResourceId = az acr show --name $AcrName --query id -o tsv
+
+	# Assign AcrPull role to the managed identity
+	az role assignment create `
+		--assignee-object-id $principalId `
+		--role "AcrPull" `
+		--scope $acrResourceId
+
+	Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
 }
 
 # Get the app URL
