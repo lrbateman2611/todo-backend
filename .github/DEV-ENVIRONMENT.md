@@ -24,7 +24,7 @@ Development: dev branch    → todos-api-dev (0.25 CPU, 0.5GB RAM)
 Run the setup script:
 
 ```powershell
-cd "E:\Documents\CS Projects\Websites\todos-backend"
+cd <path-to-your-todo-backend-repo>
 .\.github\setup-dev-environment.ps1
 ```
 
