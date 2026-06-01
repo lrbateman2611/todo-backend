@@ -74,34 +74,42 @@ if (-not $appExists) {
 	$retryCount = 0
 	$maxRetries = 10
 	
-	while ($null -eq $principalId -and $retryCount -lt $maxRetries) {
+	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -lt $maxRetries) {
 		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
-		if ($null -eq $principalId) {
+		if ([string]::IsNullOrWhiteSpace($principalId)) {
 			$retryCount++
 			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
 			Start-Sleep -Seconds 2
 		}
 	}
 	
-	if ($null -eq $principalId) {
+	if ([string]::IsNullOrWhiteSpace($principalId)) {
 		Write-Host "✗ Failed to retrieve managed identity. Please manually assign AcrPull role to the Container App's managed identity." -ForegroundColor Red
 		return
 	}
 
 	# Get ACR resource ID
+	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
 	$acrResourceId = az acr show --name $AcrName --query id -o tsv
+	
+	if ([string]::IsNullOrWhiteSpace($acrResourceId)) {
+		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name is correct and you have access to it." -ForegroundColor Red
+		return
+	}
 
 	# Assign AcrPull role to the managed identity
 	Write-Host "Assigning AcrPull role to managed identity..." -ForegroundColor Gray
-	az role assignment create `
+	$roleAssignmentOutput = az role assignment create `
 		--assignee-object-id $principalId `
 		--role "AcrPull" `
-		--scope $acrResourceId 2>$null
+		--scope $acrResourceId 2>&1
 
 	if ($LASTEXITCODE -eq 0) {
 		Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
 	} else {
-		Write-Host "⚠ Failed to assign AcrPull role. The Container App may not be able to pull images. Please manually assign the role." -ForegroundColor Yellow
+		Write-Host "⚠ Failed to assign AcrPull role. The Container App may not be able to pull images." -ForegroundColor Yellow
+		Write-Host "Error details: $roleAssignmentOutput" -ForegroundColor Gray
+		Write-Host "Please manually assign the AcrPull role to the Container App's managed identity.`n" -ForegroundColor Yellow
 	}
 }
 
