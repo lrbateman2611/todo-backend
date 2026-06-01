@@ -48,14 +48,7 @@ if ($appExists) {
 if (-not $appExists) {
 	Write-Host "Creating development Container App..." -ForegroundColor Yellow
 
-	# Enable ACR admin (if not already)
-	az acr update --name $AcrName --admin-enabled true 2>$null
-
-	# Get ACR credentials
-	$acrUsername = az acr credential show --name $AcrName --query username -o tsv
-	$acrPassword = az acr credential show --name $AcrName --query passwords[0].value -o tsv
-
-	# Create development Container App
+	# Create development Container App with system-assigned managed identity
 	az containerapp create `
 		--name $DevAppName `
 		--resource-group $ResourceGroup `
@@ -64,15 +57,88 @@ if (-not $appExists) {
 		--target-port 8080 `
 		--ingress external `
 		--registry-server $loginServer `
-		--registry-username $acrUsername `
-		--registry-password $acrPassword `
+		--registry-identity system `
+		--system-assigned `
 		--min-replicas 1 `
 		--max-replicas 3 `
 		--cpu 0.25 `
 		--memory 0.5Gi `
 		--env-vars "ASPNETCORE_ENVIRONMENT=Development"
 
+	if ($LASTEXITCODE -ne 0) {
+		Write-Host "✗ Failed to create development Container App: $DevAppName" -ForegroundColor Red
+		exit 1
+	}
+
 	Write-Host "✓ Development Container App created`n" -ForegroundColor Green
+
+	# Get the managed identity's principal ID
+	Write-Host "Configuring managed identity for ACR access..." -ForegroundColor Yellow
+	
+	# Wait for the managed identity to be created
+	$principalId = $null
+	$retryCount = 0
+	$maxRetries = 10
+	$lastError = $null
+	
+	while ($retryCount -lt $maxRetries) {
+		# Try to get the managed identity, capturing output
+		$output = (az containerapp show --only-show-errors --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv) 2>&1
+		$output = ($output | Out-String).Trim()
+		if ($LASTEXITCODE -eq 0 -and $output -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') {
+			$principalId = $output
+			break
+		}
+		
+		$lastError = $output
+		$retryCount++
+		if ($retryCount -lt $maxRetries) {
+			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
+			Start-Sleep -Seconds 2
+		}
+	}
+	
+	if ([string]::IsNullOrWhiteSpace($principalId)) {
+		Write-Host "✗ Failed to retrieve managed identity for Container App: $DevAppName" -ForegroundColor Red
+		if ($lastError) {
+			Write-Host "Error details: $lastError" -ForegroundColor Gray
+		}
+		Write-Host "Please manually assign AcrPull role to the Container App's managed identity." -ForegroundColor Yellow
+		exit 1
+	}
+
+	# Get ACR resource ID
+	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
+	$acrResourceId = (az acr show --only-show-errors --name $AcrName --query id -o tsv) 2>&1
+	$acrResourceId = ($acrResourceId | Out-String).Trim()
+	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($acrResourceId)) {
+		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name '$AcrName' is correct and you have access to it." -ForegroundColor Red
+		if ($acrResourceId -and $LASTEXITCODE -ne 0) {
+			Write-Host "Error details: $acrResourceId" -ForegroundColor Gray
+		}
+		exit 1
+	}
+
+	# Assign AcrPull role to the managed identity
+	Write-Host "Assigning AcrPull role to managed identity..." -ForegroundColor Gray
+	$roleAssignmentOutput = (az role assignment create `
+		--assignee $principalId `
+		--role "AcrPull" `
+		--scope $acrResourceId) 2>&1
+
+	if ($LASTEXITCODE -eq 0) {
+		Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
+	} else {
+		Write-Host "✗ Failed to assign AcrPull role to Container App: $DevAppName" -ForegroundColor Red
+		Write-Host "Managed Identity Principal ID: $principalId" -ForegroundColor Gray
+		if ($roleAssignmentOutput) {
+			Write-Host "Error details:" -ForegroundColor Gray
+			$roleAssignmentOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+		}
+		Write-Host "The Container App will not be able to pull images from ACR without this role assignment." -ForegroundColor Red
+		Write-Host "Please manually assign the AcrPull role to the Container App's managed identity.`n" -ForegroundColor Yellow
+		exit 1
+	}
 }
 
 # Get the app URL
