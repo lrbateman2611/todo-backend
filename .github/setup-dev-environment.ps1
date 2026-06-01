@@ -84,7 +84,7 @@ if (-not $appExists) {
 	while ($retryCount -lt $maxRetries) {
 		# Try to get the managed identity, capturing output
 		$output = (az containerapp show --only-show-errors --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv) 2>&1
-		$output = $output.Trim()
+		$output = ($output | Out-String).Trim()
 		if ($LASTEXITCODE -eq 0 -and $output -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') {
 			$principalId = $output
 			break
