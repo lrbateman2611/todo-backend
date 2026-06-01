@@ -33,9 +33,9 @@ $appExists = az containerapp show --name $DevAppName --resource-group $ResourceG
 
 if ($appExists) {
 	Write-Host "⚠ Development Container App already exists: $DevAppName" -ForegroundColor Yellow
-	Write-Host "Use this to update or delete it.`n" -ForegroundColor Yellow
+	Write-Host "Delete it to recreate it, or skip to leave it unchanged.`n" -ForegroundColor Yellow
 
-	$action = Read-Host "Do you want to (u)pdate or (d)elete it? [u/d]"
+	$action = Read-Host "Do you want to (d)elete/recreate it or (s)kip it? [d/s]"
 
 	if ($action -eq 'd') {
 		Write-Host "`nDeleting existing Container App..." -ForegroundColor Yellow
