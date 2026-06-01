@@ -75,18 +75,15 @@ if (-not $appExists) {
 	$maxRetries = 10
 	$lastError = $null
 	
-	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -le $maxRetries) {
+	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -lt $maxRetries) {
 		# Suppress errors during retry attempts since the identity might not be available yet
 		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
 		if ([string]::IsNullOrWhiteSpace($principalId)) {
+			$lastError = "Managed identity not available yet"
+			$retryCount++
 			if ($retryCount -lt $maxRetries) {
-				$lastError = "Managed identity not available yet"
-				$retryCount++
 				Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
 				Start-Sleep -Seconds 2
-			} else {
-				$retryCount++
-				break
 			}
 		}
 	}
