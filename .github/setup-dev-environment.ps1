@@ -75,7 +75,8 @@ if (-not $appExists) {
 	$maxRetries = 10
 	
 	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -lt $maxRetries) {
-		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>&1
+		# Suppress errors during retry attempts since the identity might not be available yet
+		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
 		if ([string]::IsNullOrWhiteSpace($principalId)) {
 			$retryCount++
 			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
@@ -90,17 +91,21 @@ if (-not $appExists) {
 
 	# Get ACR resource ID
 	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
-	$acrResourceId = az acr show --name $AcrName --query id -o tsv 2>&1
+	$acrOutput = az acr show --name $AcrName --query id -o tsv 2>&1
+	$acrResourceId = $acrOutput | Select-Object -First 1
 	
-	if ([string]::IsNullOrWhiteSpace($acrResourceId)) {
+	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($acrResourceId)) {
 		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name is correct and you have access to it." -ForegroundColor Red
+		if ($acrOutput) {
+			Write-Host "Error details: $acrOutput" -ForegroundColor Gray
+		}
 		return
 	}
 
 	# Assign AcrPull role to the managed identity
 	Write-Host "Assigning AcrPull role to managed identity..." -ForegroundColor Gray
 	$roleAssignmentOutput = az role assignment create `
-		--assignee-object-id $principalId `
+		--assignee $principalId `
 		--role "AcrPull" `
 		--scope $acrResourceId 2>&1
 
