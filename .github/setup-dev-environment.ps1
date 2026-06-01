@@ -81,10 +81,8 @@ if (-not $appExists) {
 		if ([string]::IsNullOrWhiteSpace($principalId)) {
 			$lastError = "Managed identity not available yet"
 			$retryCount++
-			if ($retryCount -lt $maxRetries) {
-				Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
-				Start-Sleep -Seconds 2
-			}
+			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
+			Start-Sleep -Seconds 2
 		}
 	}
 	
@@ -94,7 +92,7 @@ if (-not $appExists) {
 			Write-Host "Error details: $lastError" -ForegroundColor Gray
 		}
 		Write-Host "Please manually assign AcrPull role to the Container App's managed identity." -ForegroundColor Yellow
-		return
+		exit 1
 	}
 
 	# Get ACR resource ID - separate stdout and stderr
@@ -103,7 +101,7 @@ if (-not $appExists) {
 	
 	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($acrResourceId)) {
 		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name '$AcrName' is correct and you have access to it." -ForegroundColor Red
-		return
+		exit 1
 	}
 
 	# Assign AcrPull role to the managed identity
