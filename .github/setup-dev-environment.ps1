@@ -75,7 +75,7 @@ if (-not $appExists) {
 	$maxRetries = 10
 	
 	while (([string]::IsNullOrWhiteSpace($principalId)) -and $retryCount -lt $maxRetries) {
-		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
+		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>&1
 		if ([string]::IsNullOrWhiteSpace($principalId)) {
 			$retryCount++
 			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
@@ -90,7 +90,7 @@ if (-not $appExists) {
 
 	# Get ACR resource ID
 	Write-Host "Getting ACR resource ID..." -ForegroundColor Gray
-	$acrResourceId = az acr show --name $AcrName --query id -o tsv
+	$acrResourceId = az acr show --name $AcrName --query id -o tsv 2>&1
 	
 	if ([string]::IsNullOrWhiteSpace($acrResourceId)) {
 		Write-Host "✗ Failed to retrieve ACR resource ID. Please verify the ACR name is correct and you have access to it." -ForegroundColor Red
