@@ -68,18 +68,41 @@ if (-not $appExists) {
 
 	# Get the managed identity's principal ID
 	Write-Host "Configuring managed identity for ACR access..." -ForegroundColor Yellow
-	$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv
+	
+	# Wait for the managed identity to be created
+	$principalId = $null
+	$retryCount = 0
+	$maxRetries = 10
+	
+	while ($null -eq $principalId -and $retryCount -lt $maxRetries) {
+		$principalId = az containerapp show --name $DevAppName --resource-group $ResourceGroup --query identity.principalId -o tsv 2>$null
+		if ($null -eq $principalId) {
+			$retryCount++
+			Write-Host "Waiting for managed identity to be available... (attempt $retryCount/$maxRetries)" -ForegroundColor Gray
+			Start-Sleep -Seconds 2
+		}
+	}
+	
+	if ($null -eq $principalId) {
+		Write-Host "✗ Failed to retrieve managed identity. Please manually assign AcrPull role to the Container App's managed identity." -ForegroundColor Red
+		return
+	}
 
 	# Get ACR resource ID
 	$acrResourceId = az acr show --name $AcrName --query id -o tsv
 
 	# Assign AcrPull role to the managed identity
+	Write-Host "Assigning AcrPull role to managed identity..." -ForegroundColor Gray
 	az role assignment create `
 		--assignee-object-id $principalId `
 		--role "AcrPull" `
-		--scope $acrResourceId
+		--scope $acrResourceId 2>$null
 
-	Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
+	if ($LASTEXITCODE -eq 0) {
+		Write-Host "✓ Managed identity configured with AcrPull role`n" -ForegroundColor Green
+	} else {
+		Write-Host "⚠ Failed to assign AcrPull role. The Container App may not be able to pull images. Please manually assign the role." -ForegroundColor Yellow
+	}
 }
 
 # Get the app URL
