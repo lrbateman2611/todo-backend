@@ -9,6 +9,8 @@ public class TodoItem
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsCompleted { get; set; }
+    public string Category { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 
     public TodoItem(TodoEntity todoEntity)
@@ -17,6 +19,8 @@ public class TodoItem
         Title = todoEntity.Name;
         Description = todoEntity.Description;
         IsCompleted = todoEntity.IsCompleted;
+        Category = todoEntity.Category;
+        Color = todoEntity.Color;
     }
 
     public TodoItem(PostTodo todoRequest)
@@ -25,6 +29,8 @@ public class TodoItem
         Title = todoRequest.Title;
         Description = todoRequest.Description;
         IsCompleted = todoRequest.IsCompleted;
+        Category = todoRequest.Category;
+        Color = todoRequest.Color;
     }
 
     public TodoItem(UpdateTodo todoRequest)
@@ -33,6 +39,8 @@ public class TodoItem
         Title = todoRequest.Title;
         Description = todoRequest.Description;
         IsCompleted = todoRequest.IsCompleted;
+        Category = todoRequest.Category;
+        Color = todoRequest.Color;
     }
 }
 

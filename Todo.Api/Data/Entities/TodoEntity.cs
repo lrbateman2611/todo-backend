@@ -14,6 +14,10 @@ public class TodoEntity : BaseModel
     public string Description { get; set; } = string.Empty;
     [Column("is_completed")]
     public bool IsCompleted { get; set; }
+    [Column("category")]
+    public string Category { get; set; } = string.Empty;
+    [Column("color")]
+    public string Color { get; set; } = string.Empty;
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
     [Column("modified_at")]

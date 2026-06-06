@@ -29,6 +29,8 @@ public class TodoData(Supabase.Client supabaseClient): ITodoData
         {
             {"p_description", item.Description },
             {"p_name", item.Title },
+            {"p_category", item.Category },
+            {"p_color", item.Color },
             {"p_user_id", userId }
         };
 
@@ -50,6 +52,8 @@ public class TodoData(Supabase.Client supabaseClient): ITodoData
             {"p_name", item.Title },
             {"p_description", item.Description },
             {"p_is_completed", item.IsCompleted },
+            {"p_category", item.Category },
+            {"p_color", item.Color },
             {"p_user_id", userId }
         };
 
