@@ -56,7 +56,7 @@ Or use Visual Studio and press F5.
 
 ### Azure Container Apps
 
-The application is automatically deployed to Azure Container Apps when code is pushed to the `master` branch.
+The application is automatically deployed to Azure Container Apps when code is pushed to the `main` branch.
 
 **Production URL:** https://todos-api.{your-container-app-domain}.azurecontainerapps.io
 
@@ -137,7 +137,7 @@ todos-backend/
 1. Create a feature branch
 2. Make your changes
 3. Test locally
-4. Create a pull request to `master`
+4. Create a pull request to `main`
 5. Once merged, GitHub Actions will deploy automatically
 
 ## License

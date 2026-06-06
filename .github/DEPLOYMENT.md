@@ -1,6 +1,6 @@
 # GitHub Actions Azure Deployment Setup
 
-This repository uses GitHub Actions to automatically build and deploy to Azure Container Apps when code is pushed to the `master` branch.
+This repository uses GitHub Actions to automatically build and deploy to Azure Container Apps when code is pushed to the `main` branch.
 
 ## Prerequisites
 
@@ -93,7 +93,7 @@ Write-Host "Service Principal granted ACR push access" -ForegroundColor Green
 ## Workflow Details
 
 ### Trigger
-- **Push to `master` branch**: Automatically builds and deploys
+- **Push to `main` branch**: Automatically builds and deploys
 - **Manual trigger**: Can be run manually from GitHub Actions tab
 
 ### Steps
@@ -110,18 +110,18 @@ Write-Host "Service Principal granted ACR push access" -ForegroundColor Green
 
 ## Testing the Workflow
 
-### Option 1: Push to Master
+### Option 1: Push to main
 ```bash
 git add .
 git commit -m "Test deployment workflow"
-git push origin master
+git push origin main
 ```
 
 ### Option 2: Manual Trigger
 1. Go to GitHub → **Actions** tab
 2. Select **Build and Deploy to Azure Container Apps**
 3. Click **Run workflow**
-4. Select `master` branch
+4. Select `main` branch
 5. Click **Run workflow**
 
 ## Monitoring Deployment
