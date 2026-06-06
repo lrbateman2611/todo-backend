@@ -9,7 +9,7 @@ builder.Services
     .AddDependencies()
     .AddAuthenticationService()
     .AddControllerService()
-    .AddCorsConfiguration()
+    .AddCorsConfiguration(builder.Environment)
     .ConfigureOpenApiDocuments();
 
 // Add health checks
