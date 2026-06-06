@@ -84,6 +84,6 @@ Write-Host "AZURE_CREDENTIALS" -ForegroundColor White
 Write-Host "5. Value: " -NoNewline -ForegroundColor Yellow
 Write-Host "Paste the JSON" -ForegroundColor White
 Write-Host "6. Click 'Add secret'" -ForegroundColor Yellow
-Write-Host "7. Push code to master branch to trigger deployment`n" -ForegroundColor Yellow
+Write-Host "7. Push code to main branch to trigger deployment`n" -ForegroundColor Yellow
 
 Write-Host "✓ Setup complete!" -ForegroundColor Green
