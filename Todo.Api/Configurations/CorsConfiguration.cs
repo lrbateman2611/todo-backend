@@ -8,7 +8,7 @@ public static class CorsConfiguration
             options.AddPolicy(name: "clientApp",
                 builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000")
+                    builder.WithOrigins("http://localhost:5173")
                     .AllowAnyMethod()
                     .AllowAnyHeader();
                 }

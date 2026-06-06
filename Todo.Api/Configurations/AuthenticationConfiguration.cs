@@ -36,7 +36,12 @@ public static class AuthenticationConfiguration
                     options.Audience = auth0Details.Audience;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        NameClaimType = ClaimTypes.NameIdentifier
+                        NameClaimType = ClaimTypes.NameIdentifier,
+                        ValidateIssuer = true,
+                        ValidIssuer = auth0Details.Domain,
+                        ValidateAudience = true,
+                        ValidAudience = auth0Details.Audience,
+                        ValidateLifetime = true
                     };
                 }));
 }
