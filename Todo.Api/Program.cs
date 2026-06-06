@@ -31,6 +31,8 @@ app.MapGet("/", () => Results.Ok(new
 // Map health check
 app.MapHealthChecks("/health");
 
+app.UseCors("clientApp");
+
 app
     .ConfigureScalar(builder.Configuration, builder.Services)
     .ConfigureControllers()
