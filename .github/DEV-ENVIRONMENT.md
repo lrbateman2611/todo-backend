@@ -14,7 +14,7 @@ The development environment consists of:
 ## Architecture
 
 ```
-Production:  master branch → todos-api (0.5 CPU, 1GB RAM)
+Production:  main branch → todos-api (0.5 CPU, 1GB RAM)
 Development: dev branch    → todos-api-dev (0.25 CPU, 0.5GB RAM)
 ```
 
@@ -110,19 +110,19 @@ curl "https://$devUrl/health"
 curl "https://$devUrl/"
 ```
 
-4. **Merge to master** when ready for production
+4. **Merge to main** when ready for production
 
 ```bash
-git checkout master
+git checkout main
 git merge dev
-git push origin master
+git push origin main
 ```
 
 ### Testing Pull Requests
 
-Pull requests to `master` also trigger development deployment:
+Pull requests to `main` also trigger development deployment:
 
-1. Create PR from `dev` to `master`
+1. Create PR from `dev` to `main`
 2. Development environment updates automatically
 3. Test the changes
 4. Merge PR when satisfied
@@ -131,8 +131,8 @@ Pull requests to `master` also trigger development deployment:
 
 | Environment | URL                                                         | Trigger                         |
 | ----------- | ----------------------------------------------------------- | ------------------------------- |
-| Production  | `todos-api.livelymeadow-*.eastus.azurecontainerapps.io`     | Push to `master`                |
-| Development | `todos-api-dev.livelymeadow-*.eastus.azurecontainerapps.io` | Push to `dev` or PR to `master` |
+| Production  | `todos-api.livelymeadow-*.eastus.azurecontainerapps.io`     | Push to `main`                |
+| Development | `todos-api-dev.livelymeadow-*.eastus.azurecontainerapps.io` | Push to `dev` or PR to `main` |
 
 ## Resource Comparison
 
@@ -235,7 +235,7 @@ az containerapp update `
 
 ## Best Practices
 
-1. ✅ **Always test in dev first** before merging to master
+1. ✅ **Always test in dev first** before merging to main
 2. ✅ **Use feature branches** that merge to `dev`
 3. ✅ **Keep dev environment running** during active development
 4. ✅ **Stop dev when not needed** to save costs
@@ -262,9 +262,9 @@ git checkout dev
 git add . && git commit -m "Feature" && git push origin dev
 
 # Promote to production
-git checkout master
+git checkout main
 git merge dev
-git push origin master
+git push origin main
 
 # View dev app
 az containerapp show --name todos-api-dev --resource-group todos-containerapp-rg
@@ -281,7 +281,7 @@ az containerapp show --name todos-api --resource-group todos-containerapp-rg
 | Deploy to dev          | `git push origin dev`                 |
 | View dev URL           | Portal or `az containerapp show`      |
 | Test dev               | `curl https://DEV_URL/health`         |
-| Promote to prod        | Merge `dev` → `master`                |
+| Promote to prod        | Merge `dev` → `main`                |
 | View deployments       | GitHub Actions tab                    |
 
 ## Support
